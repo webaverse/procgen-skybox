@@ -5,7 +5,7 @@ import metaversefile from 'metaversefile';
 import {Cloud} from './cloud.js';
 import {Sky} from './sky.js';
 
-const {useApp, useFrame, useInternals, useLocalPlayer} = metaversefile;
+const {useApp, useFrame, useInternals, useLocalPlayer, useSkyManager} = metaversefile;
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 const textureLoader = new THREE.TextureLoader();
 
@@ -36,10 +36,21 @@ export default () => {
   const {camera} = useInternals();
   const localPlayer = useLocalPlayer();
 
+  const skyManager = useSkyManager();
+  const ambientLight = new THREE.AmbientLight('#fff', 0.5);
+  app.add(ambientLight);
+
+  skyManager.initSkyLight();
+  const skyLight = skyManager.getSkyLight();
+
+  app.add(skyLight);
+  app.add(skyLight.target);
+
   //############################################################## sun position ##############################################################
   let azimuth = 0.4;
   const inclination = 0.;
   const sunPosition = new THREE.Vector3();
+  const skyLightPosition = new THREE.Vector3();
   useFrame(() => {
     // ?* moves the skybox app so that player never passes the skybox's walls
     app.position.copy(localPlayer.position);
@@ -51,7 +62,20 @@ export default () => {
       Math.cos(phi),
       Math.sin(phi) * Math.sin(theta),
       Math.sin(phi) * Math.cos(theta)
-    )
+    );
+    if (azimuth < 0.5) {
+      // sun
+      skyLightPosition.copy(sunPosition);
+      skyManager.setSkyLightColor('#fff');
+      skyManager.setSkyLightIntensity(6);
+    } else {
+      // moon
+      skyLightPosition.copy(sunPosition).multiplyScalar(-1);
+      skyManager.setSkyLightColor('#98caf5');
+      skyManager.setSkyLightIntensity(2);
+    }
+
+    skyManager.setSkyLightPosition(skyLightPosition);
   });
   
 
