@@ -43,7 +43,7 @@ export default () => {
   let defaultSkyLightPosition = new THREE.Vector3(0, 0, 0);
   const _setSkyLight = (value) => {
     value.position && defaultSkyLightPosition.set(value.position[0], value.position[1], value.position[2]);
-    skylightSpeed = value.speed ? value.speed : skylightSpeed;
+    skylightSpeed = value.speed;
   }
 
   const ambientLight = new THREE.AmbientLight('#fff', 0.5);
