@@ -37,8 +37,79 @@ export default () => {
   const localPlayer = useLocalPlayer();
 
   const skyManager = useSkyManager();
+  
+  // ######################################## set component ################################################################
+  let skylightSpeed = 1;
+  let defaultSkyLightPosition = new THREE.Vector3(0, 0, 0);
+  const _setSkyLight = (value) => {
+    value.position && defaultSkyLightPosition.set(value.position[0], value.position[1], value.position[2]);
+    skylightSpeed = value.speed ? value.speed : skylightSpeed;
+  }
+
   const ambientLight = new THREE.AmbientLight('#fff', 0.5);
   app.add(ambientLight);
+  const _setAmbientLight = (value) => {
+    const args = value.args;
+    ambientLight.color.set(ambientLight.color.fromArray(args[0]).multiplyScalar(1 / 255).getHex());
+    ambientLight.intensity = args[1];
+  }
+
+  const _setHemisphereLight = (value) => {
+    const args = value.args;
+    const hemiLight = new THREE.HemisphereLight(
+      new THREE.Color().fromArray(args[0]).multiplyScalar(1 / 255).getHex(), 
+      new THREE.Color().fromArray(args[1]).multiplyScalar(1 / 255).getHex(), 
+      args[2] 
+    );
+    hemiLight.position.set(value.position[0], value.position[1], value.position[2]);
+    app.add(hemiLight);
+  }
+
+  let sunColor = new THREE.Color(0xffffff);
+  let sunColorHex = '#' + sunColor.getHexString();
+  let sunIntensity = 6;
+  const _setSunLight = (value) => {
+    const args = value.args;
+    sunColorHex = '#' + sunColor.fromArray(args[0]).multiplyScalar(1 / 255).getHexString();
+    sunIntensity = args[1];
+  }
+
+  let moonColor = new THREE.Color(0x98caf5);
+  let moonColorHex = '#' + moonColor.getHexString();
+  let moonIntensity = 2;
+  const _setMoonLight = (value) => {
+    const args = value.args;
+    moonColorHex = '#' + moonColor.fromArray(args[0]).multiplyScalar(1 / 255).getHexString();
+    moonIntensity = args[1];
+  }
+
+  for (const component of app.components) {
+    switch (component.key) {
+      case 'skyLight': {
+        _setSkyLight(component.value)
+        break;
+      }
+      case 'ambientLight': {
+        _setAmbientLight(component.value)
+        break;
+      }
+      case 'hemisphereLight': {
+        _setHemisphereLight(component.value)
+        break;
+      }
+      case 'sunLight': {
+        _setSunLight(component.value)
+        break;
+      }
+      case 'moonLight': {
+        _setMoonLight(component.value)
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+  }
 
   skyManager.initSkyLight();
   const skyLight = skyManager.getSkyLight();
@@ -54,7 +125,7 @@ export default () => {
   useFrame(() => {
     // ?* moves the skybox app so that player never passes the skybox's walls
     app.position.copy(localPlayer.position);
-    azimuth = (0.05 + (Date.now() / 5000) * 0.1) % 1;
+    azimuth = (0.05 + (Date.now() / 5000) * 0.1 * skylightSpeed) % 1;
     const theta = Math.PI * (inclination - 0.5);
     const phi = 2 * Math.PI * (azimuth - 0.5);
 
@@ -66,13 +137,13 @@ export default () => {
     if (azimuth < 0.5) {
       // sun
       skyLightPosition.copy(sunPosition);
-      skyManager.setSkyLightColor('#fff');
-      skyManager.setSkyLightIntensity(6);
+      skyManager.setSkyLightColor(sunColorHex);
+      skyManager.setSkyLightIntensity(sunIntensity);
     } else {
       // moon
       skyLightPosition.copy(sunPosition).multiplyScalar(-1);
-      skyManager.setSkyLightColor('#98caf5');
-      skyManager.setSkyLightIntensity(2);
+      skyManager.setSkyLightColor(moonColorHex);
+      skyManager.setSkyLightIntensity(moonIntensity);
     }
 
     skyManager.setSkyLightPosition(skyLightPosition);
