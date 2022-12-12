@@ -41,8 +41,12 @@ export default () => {
   // ######################################## set component ################################################################
   let skylightSpeed = 1;
   let defaultSkyLightPosition = new THREE.Vector3(0, 0, 0);
+  let staticSunMoon = false;
+  let azimuth = 0.4;
   const _setSkyLight = (value) => {
     value.position && defaultSkyLightPosition.set(value.position[0], value.position[1], value.position[2]);
+    staticSunMoon = value.static;
+    azimuth = value.azimuth;
     skylightSpeed = value.speed;
   }
 
@@ -118,14 +122,13 @@ export default () => {
   app.add(skyLight.target);
 
   //############################################################## sun position ##############################################################
-  let azimuth = 0.4;
   const inclination = 0.;
   const sunPosition = new THREE.Vector3();
   const skyLightPosition = new THREE.Vector3();
   useFrame(() => {
     // ?* moves the skybox app so that player never passes the skybox's walls
     app.position.copy(localPlayer.position);
-    azimuth = (0.05 + (Date.now() / 5000) * 0.1 * skylightSpeed) % 1;
+    azimuth = staticSunMoon ? azimuth : (0.05 + (Date.now() / 5000) * 0.1 * skylightSpeed) % 1;
     const theta = Math.PI * (inclination - 0.5);
     const phi = 2 * Math.PI * (azimuth - 0.5);
 
