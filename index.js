@@ -1,11 +1,10 @@
 import * as THREE from 'three';
 import { Lensflare, LensflareElement } from './Lensflare.js';
 
-import metaversefile from 'metaversefile';
+// import metaversefile from 'metaversefile';
 import {Cloud} from './cloud.js';
 import {Sky} from './sky.js';
 
-const {useApp, useFrame, useInternals, useLocalPlayer, useSkyManager} = metaversefile;
 const baseUrl = import.meta.url.replace(/(\/)[^\/\\]*$/, '$1');
 const textureLoader = new THREE.TextureLoader();
 
@@ -31,9 +30,18 @@ const textureFlare3 = textureLoader.load(baseUrl + `./textures/lensflare3.png`);
 
 
 
-export default () => {
+export default (ctx) => {
+  const {
+    useApp,
+    useFrame,
+    useCamera,
+    // useInternals,
+    useLocalPlayer,
+    useSkyManager,
+  } = ctx;
   const app = useApp();
-  const {camera} = useInternals();
+  // const {camera} = useInternals();
+  const camera = useCamera();
   const localPlayer = useLocalPlayer();
 
   const skyManager = useSkyManager();
@@ -109,7 +117,7 @@ export default () => {
     }
   }
 
-  skyManager.initSkyLight();
+  // skyManager.initSkyLight();
   const skyLight = skyManager.getSkyLight();
 
   app.add(skyLight);
